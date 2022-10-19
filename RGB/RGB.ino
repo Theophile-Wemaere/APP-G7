@@ -34,3 +34,40 @@ void blink()
   digitalWrite(R,LOW);
   digitalWrite(G,LOW);
 }
+
+void blinkYellow()
+{
+  digitalWrite(R,HIGH);
+  digitalWrite(G,HIGH);
+  digitalWrite(B,LOW);
+  delay(500);
+  digitalWrite(R,LOW);
+  digitalWrite(G,LOW);
+  delay(500);
+}
+
+void rainbowColors()
+{
+  rgbColor(255,0,0); // red
+  delay(500);
+  rgbColor(0,255,0); // green 
+  delay(500);
+  rgbColor(0,0,255); // blue 
+  delay(500);
+  rgbColor(255,255,0); // yellow
+  delay(500);
+  rgbColor(255,0,255); // rose 
+  delay(500);
+  rgbColor(0,255,255); // cyan 
+  delay(500);
+  rgbColor(255,255,255); // white
+  delay(500);
+}
+
+void rgbColor(int Red, int Green, int Blue)
+{
+  analogWrite(R,Red);
+  analogWrite(G,Green);
+  anallogWrite(B,Blue);
+}
+

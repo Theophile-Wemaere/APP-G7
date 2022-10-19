@@ -70,6 +70,5 @@ void rgbColor(int Red, int Green, int Blue)
 {
   analogWrite(R,Red);
   analogWrite(G,Green);
-  anallogWrite(B,Blue);
+  analogWrite(B,Blue);
 }
-

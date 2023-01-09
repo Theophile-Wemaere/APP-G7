@@ -1,5 +1,5 @@
 #include <dht11.h>
-#define DHT11PIN A2
+#define DHT11PIN PD_6
 
 dht11 DHT11;
 

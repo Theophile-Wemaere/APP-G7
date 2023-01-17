@@ -16,7 +16,7 @@
 //                                                                      //
 // LOCALES :                                                            //
 //                                                                      //
-// FONCTIONS APPELEES : I2CReceive(), I2CSend(), getCRC()               //                                    
+// FONCTIONS APPELEES : I2CReceive(), I2CSendCO2(), getCRC()               //                                    
 //                                                                      //
 //                                                                      //
 // ALGO - REFERENCES :                                                  //
@@ -37,7 +37,7 @@
 
 //initialize I2C module 1
 //Slightly modified version of TI's example code
-void InitI2C(void)
+void InitI2C_co2(void)
 {
     //enable I2C module 1
     SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);
@@ -67,7 +67,7 @@ void InitI2C(void)
 }
 
 //sends an I2C command to the specified slave
-void I2CSend(uint8_t slave_addr, uint8_t num_of_args, ...)
+void I2CSendCO2(uint8_t slave_addr, uint8_t num_of_args, ...)
 {
 
     uint8_t i;
@@ -173,11 +173,11 @@ int prevCO2 = 400;
 int prevVOC = 100;
 bool beginning = true;
 
-void readSensor()
+int* readCO2()
 {
     byte buffer[] = {0x0C,0x00,0x00,0x00,0x00};
     byte crc = getCRC(buffer,5);
-    I2CSend(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
+    I2CSendCO2(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
 
     int data[10];
 
@@ -212,9 +212,9 @@ void readSensor()
             prevVOC = VOC;
             if(prevCO2 < 100)
               prevVOC = 100;
-            Serial.print(CO2);
-            Serial.print(" ");
-            Serial.println(VOC);
+
+            int results[2] = {CO2,VOC};
+            return results;
          }
       }           
   }

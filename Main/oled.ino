@@ -104,7 +104,7 @@ void InitI2C2(void)
     HWREG(I2C2_BASE + I2C_O_FIFOCTL) = 80008000;
 }
 
-void InitI2C_oled(void)
+void InitI2C_Oled(void)
 {
     if (PORTI2C == 0)
         InitI2C0();

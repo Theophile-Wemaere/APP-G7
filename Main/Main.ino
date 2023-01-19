@@ -15,8 +15,8 @@ void setup()
 {
   Serial.begin(9600);
   Serial.println("Initializing all components");
-  InitI2C_oled();
-  InitI2C_co2();
+  InitI2C_Oled();
+  InitI2C_CO2();
   InitScreen();
 
   pinMode(Digital_sharp, OUTPUT);
@@ -24,70 +24,87 @@ void setup()
   Display(logo);
   delay(2000);
   Serial.println("Done initializing");
+  Display(empty);
 }
 
 int CO2, VOC;
-float temperature, humidity, voMeasured = 0, calcVoltage = 0, dustDensity = 0;
+int i1,i2,i3; // index for string 
+float temperature, humidity;
+//float voMeasured, calcVoltage, dustDensity;
 
 void loop() 
 {
-  float* resultsDHT11 = readDHT11();
+  Serial.println(" --------- NEW DATA ---------");
+  float * resultsDHT11 = readDHT11();
   delay(100);
-  Serial.println("1");
-  int* resultsCO2 = readCO2();
+//  int * resultsCO2 = readCO2();
+  readCO2();
   delay(100);
-  Serial.println("2");
-  float* resultsSharp = readSharp();
+  printSharpData();
   delay(100);
-  Serial.println("3");
+  
   humidity = resultsDHT11[0];
   temperature = resultsDHT11[1];
 
-  CO2 = resultsCO2[0];
-  VOC = resultsCO2[1];
+//  CO2 = resultsCO2[0];
+//  VOC = resultsCO2[1];
 
-  voMeasured = resultsSharp[0];
-  calcVoltage = resultsSharp[1];
-  dustDensity = resultsSharp[2];
-
+char buf[30];
   String displayString;
 
-  char buf[30];
-  displayString = "Temperature = " + String(temperature,2) + " °C";
+  displayString = "Temperature = " + String((int)temperature) + " °C";
   Serial.println(displayString);
   displayString.toCharArray(buf,displayString.length());
   DisplayString(0,1,buf);
   
-  displayString = "Humidity = " + String(humidity, 2) + " %";
+  displayString = "Humidity = " + String((int)humidity) + " %";
   Serial.println(displayString);
   displayString.toCharArray(buf,displayString.length());
   DisplayString(0,2,buf);
   
-  displayString = "CO2 = " + String(CO2) + " ppb";
-  Serial.println(displayString);
-  displayString.toCharArray(buf,displayString.length());
-  DisplayString(0,3,buf);
+//  displayString = "CO2 = " + String(CO2) + " ppb";
+//  Serial.println(displayString);
+//  displayString.toCharArray(buf,displayString.length());
+//  DisplayString(0,3,buf);
+//  
+//  displayString = "VOC = " + String(VOC) + " ppm";
+//  Serial.println(displayString);
+//  displayString.toCharArray(buf,displayString.length());
+//  DisplayString(0,4,buf);
   
-  displayString = "VOC = " + String(VOC) + " ppm";
-  Serial.println(displayString);
-  displayString.toCharArray(buf,displayString.length());
-  DisplayString(0,4,buf);
-  
-  displayString = "Raw Signal Value = " + String(voMeasured);
-  Serial.println(displayString);
-  displayString.toCharArray(buf,displayString.length());
-  DisplayString(0,5,buf);
-  
-  displayString = "Voltage = " + String(calcVoltage);
-  Serial.println(displayString);
-  displayString.toCharArray(buf,displayString.length());
-  DisplayString(0,6,buf);
-  
-  displayString = "Dust Density = " + String(dustDensity) + " mg/m3";
-  Serial.println(displayString);
-  displayString.toCharArray(buf,displayString.length());
-  DisplayString(0,7,buf);
+
 
   delay(1000);
   
+}
+
+void printSharpData()
+{
+  /* 
+  * all data are retrieved, but we only print the dust density,
+  * because that's the only value interesting in health field 
+  */
+  float * resultsSharp = readSharp();
+//  String resultsSharp = readSharp();
+//  
+//  int V = resultsSharp.indexOf("V");
+//  int C = resultsSharp.indexOf("C");
+//  int D = resultsSharp.indexOf("D");
+//
+//  float voMeasured = resultsSharp.substring(V+1,C).toInt()/1000.0;
+//  float calcVoltage = resultsSharp.substring(C+1,D).toInt()/1000.0; 
+//  float dustDensity = resultsSharp.substring(D+1).toInt()/1000.0;
+  float voMeasured = resultsSharp[0];
+  float calcVoltage = resultsSharp[1]; 
+  float dustDensity = resultsSharp[3];
+  Serial.println("-_-_-_-_-_-_-_-_-");
+  Serial.println(voMeasured);
+  Serial.println(calcVoltage);
+  Serial.println(dustDensity);
+
+  char buf[30];
+  String displayString = "Dust = " + String((int)dustDensity) + " ug/m3 ";
+  Serial.println(displayString.length());
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(0,6,buf);
 }

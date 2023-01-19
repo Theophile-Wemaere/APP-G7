@@ -29,7 +29,7 @@ int samplingTime = 280;
 int deltaTime = 40;
 int sleepTime = 9680;
 
-float* readSharp()
+float * readSharp()
 {
   float voMeasured = 0;
   float calcVoltage = 0;
@@ -50,16 +50,19 @@ float* readSharp()
   // equation lineaire issue de la regression lineaire realisee
   dustDensity = 0.17 * calcVoltage - 0.1;
 
-  float results[3] = {voMeasured,calcVoltage,dustDensity};
+  static float results[3] = {voMeasured,dustDensity,calcVoltage};
+  Serial.println(voMeasured);
+  Serial.println(calcVoltage);
+  Serial.println(dustDensity);
   return results;
-//  Serial.print("Raw Signal Value (0-4095): ");
-//  Serial.print(voMeasured);
-//
-//  Serial.print(" - Voltage: ");
-//  Serial.print(calcVoltage);
-//
-//  Serial.print(" - Dust Density: ");
-//  Serial.println(dustDensity); // unite : mg/m3
-//
-//  delay(1000);
+
+//  voMeasured *= 1000;
+//  calcVoltage *= 1000;
+//  dustDensity *= 1000;
+//  
+//  char payload[30];
+//  sprintf(payload,"V%dC%dD%d",int(voMeasured),int(calcVoltage),int(dustDensity));
+//  
+//  String results(payload);
+//  return results;
 }

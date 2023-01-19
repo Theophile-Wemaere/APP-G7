@@ -432,11 +432,10 @@ void DisplayCarac(int x,int y,char c)
 
 void DisplayString(int x,int y,char *s)
 {
-
-       while (*s)
-       {
-        DisplayCarac(x,y,*s);
-        x += 6;
-        s++;
-       }
+     while (*s)
+     {
+      DisplayCarac(x,y,*s);
+      x += 6;
+      s++;
+     }
 }

@@ -16,7 +16,7 @@
 //                                                                      //
 // LOCALES :                                                            //
 //                                                                      //
-// FONCTIONS APPELEES : I2CReceive(), I2CSendCO2(), getCRC()               //                                    
+// FONCTIONS APPELEES : I2CReceive_co2(), I2CSend_co2(), getCRC()               //                                    
 //                                                                      //
 //                                                                      //
 // ALGO - REFERENCES :                                                  //
@@ -37,7 +37,7 @@
 
 //initialize I2C module 1
 //Slightly modified version of TI's example code
-void InitI2C_CO2(void)
+void InitI2C_co2(void)
 {
     //enable I2C module 0
     SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
@@ -67,8 +67,9 @@ void InitI2C_CO2(void)
 }
 
 //sends an I2C command to the specified slave
-void I2CSendCO2(uint8_t slave_addr, uint8_t num_of_args, ...)
+void I2CSend_co2(uint8_t slave_addr, uint8_t num_of_args, ...)
 {
+
     uint8_t i;
     uint32_t PortI2c;
 
@@ -137,7 +138,7 @@ void I2CSendCO2(uint8_t slave_addr, uint8_t num_of_args, ...)
 }
 
 //read specified register on slave device
-uint32_t I2CReceiveCO2(uint32_t slave_addr, uint8_t reg)
+uint32_t I2CReceive_co2(uint32_t slave_addr, uint8_t reg)
 {
     //specify that we are writing (a register address) to the
     //slave device
@@ -172,23 +173,23 @@ int prevCO2 = 400;
 int prevVOC = 100;
 bool beginning = true;
 
-void readCO2()
+int * readCO2()
 {
-    Serial.println("Here !!!");
+    
     byte buffer[] = {0x0C,0x00,0x00,0x00,0x00};
     byte crc = getCRC(buffer,5);
-    I2CSendCO2(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
+    I2CSend_co2(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
     int data[10];
 
     for(int i=0;i<255;i++)
     {
-      int d = I2CReceiveCO2(SLAVE_ADDR,i);
+      int d = I2CReceive_co2(SLAVE_ADDR,i);
       if(i!=22 && d!=0)
       {
           data[0] = d;
           for(int j=1;j<8;j++)
           {
-            int d = I2CReceiveCO2(SLAVE_ADDR,i);
+            int d = I2CReceive_co2(SLAVE_ADDR,i);
             data[j] = d;
           }
 
@@ -211,16 +212,122 @@ void readCO2()
             prevVOC = VOC;
             if(prevCO2 < 100)
               prevVOC = 100;
-            Serial.print(CO2);
-            Serial.print(" ");
-            Serial.println(VOC);
-            String displayString = String(VOC);
-            char buf[displayString.length()];
-            for(int i=0;i<displayString.length();i++)
-            {
-              buf[i] = displayString[i];
-            }
-            DisplayString(0,2,buf);
+            int static results[2] = {CO2,VOC};
+            return results;
+         }
+      }           
+  }
+  int static results[2] = {0,0};
+  return results;
+}
+
+void readSensor_co2()
+{
+    
+    byte buffer[] = {0x0C,0x00,0x00,0x00,0x00};
+    byte crc = getCRC(buffer,5);
+    I2CSend_co2(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
+    int data[10];
+
+    for(int i=0;i<255;i++)
+    {
+      int d = I2CReceive_co2(SLAVE_ADDR,i);
+      if(i!=22 && d!=0)
+      {
+          data[0] = d;
+          for(int j=1;j<8;j++)
+          {
+            int d = I2CReceive_co2(SLAVE_ADDR,i);
+            data[j] = d;
+          }
+
+        int CO2,VOC;
+        
+        CO2 = (data[1]-13)*(1600/229) + 400;  
+                                                                                                                                                                                                                             
+        VOC = (data[0]-13)*(1000/229);       
+    
+        if(VOC < 0)
+          VOC = 0;
+
+        if(CO2 < 400)
+          CO2 = 400;
+
+         if (CO2 <= prevCO2*2 || VOC <= prevVOC*2)
+         {
+            prevCO2 = CO2;
+            
+            prevVOC = VOC;
+            if(prevCO2 < 100)
+              prevVOC = 100;
+
+            char buf[30];
+            
+            String displayString = "CO2 = " + String(CO2) + " ppb     ";
+            Serial.println(displayString);
+            displayString.toCharArray(buf,displayString.length());
+            DisplayString(0,3,buf);
+            
+            displayString = "VOC = " + String(VOC) + " ppm       ";
+            Serial.println(displayString);
+            displayString.toCharArray(buf,displayString.length());
+            DisplayString(0,4,buf);
+         }
+      }           
+  }
+}
+
+void displayCO2()
+{
+    
+    byte buffer[] = {0x0C,0x00,0x00,0x00,0x00};
+    byte crc = getCRC(buffer,5);
+    I2CSend_co2(SLAVE_ADDR, 6,0x0C,0x00,0x00,0x00,0x00,crc);
+    int data[10];
+
+    for(int i=0;i<255;i++)
+    {
+      int d = I2CReceive_co2(SLAVE_ADDR,i);
+      if(i!=22 && d!=0)
+      {
+          data[0] = d;
+          for(int j=1;j<8;j++)
+          {
+            int d = I2CReceive_co2(SLAVE_ADDR,i);
+            data[j] = d;
+          }
+
+        int CO2,VOC;
+        
+        CO2 = (data[1]-13)*(1600/229) + 400;  
+                                                                                                                                                                                                                             
+        VOC = (data[0]-13)*(1000/229);       
+    
+        if(VOC < 0)
+          VOC = 0;
+
+        if(CO2 < 400)
+          CO2 = 400;
+
+         if (CO2 <= prevCO2*2 || VOC <= prevVOC*2)
+         {
+            prevCO2 = CO2;
+            
+            prevVOC = VOC;
+            if(prevCO2 < 100)
+              prevVOC = 100;
+
+            char buf[30];
+
+            DisplayString(53,0,"CO2 : ");
+            String displayString = "-> " + String(CO2) + " ppb     ";
+            displayString.toCharArray(buf,displayString.length());
+            DisplayString(53,1,buf);
+
+            DisplayString(53,3,"VOC : ");
+            displayString = "-> " + String(VOC) + " ppm     ";
+            displayString.toCharArray(buf,displayString.length());
+            DisplayString(53,4,buf);
          }
       }           
   }
@@ -243,4 +350,24 @@ byte getCRC(byte *buffer, byte size)
   /* Returning results*/                                                                                                                                                                                                               
   return(crc);                                                                                                                                                                                                                         
   //end function                                                                                                                                                                                                                       
+}
+
+void printCO2Data()
+{
+  int * resultsCO2 = readCO2();  
+  int CO2 = resultsCO2[0];
+  int VOC = resultsCO2[1];
+  char buf[30];
+  if(CO2 != 0)
+  {
+    String displayString = "CO2 = " + String(CO2) + " ppb      ";
+    Serial.println(displayString);
+    displayString.toCharArray(buf,displayString.length());
+    DisplayString(0,3,buf);
+    
+    displayString = "VOC = " + String(VOC) + " ppm     ";
+    Serial.println(displayString);
+    displayString.toCharArray(buf,displayString.length());
+    DisplayString(0,4,buf);
+  }
 }

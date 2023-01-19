@@ -51,18 +51,44 @@ float * readSharp()
   dustDensity = 0.17 * calcVoltage - 0.1;
 
   static float results[3] = {voMeasured,dustDensity,calcVoltage};
-  Serial.println(voMeasured);
-  Serial.println(calcVoltage);
-  Serial.println(dustDensity);
   return results;
+}
 
-//  voMeasured *= 1000;
-//  calcVoltage *= 1000;
-//  dustDensity *= 1000;
-//  
-//  char payload[30];
-//  sprintf(payload,"V%dC%dD%d",int(voMeasured),int(calcVoltage),int(dustDensity));
-//  
-//  String results(payload);
-//  return results;
+void displaySharp()
+{
+  /* 
+  * all data are retrieved, but we only print the dust density,
+  * because that's the only value interesting in health field 
+  */
+  float * resultsSharp = readSharp();
+
+  float voMeasured = resultsSharp[0];
+  float calcVoltage = resultsSharp[1]; 
+  float dustDensity = resultsSharp[3];
+  
+  char buf[30];
+
+  DisplayString(53,6,"DUST : ");
+  String displayString = "-> " + String((int)dustDensity) + " mg/m3      ";
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(53,7,buf);
+}
+
+void printSharpData()
+{
+  /* 
+  * all data are retrieved, but we only print the dust density,
+  * because that's the only value interesting in health field 
+  */
+  float * resultsSharp = readSharp();
+
+  float voMeasured = resultsSharp[0];
+  float calcVoltage = resultsSharp[1]; 
+  float dustDensity = resultsSharp[3];
+  
+  char buf[30];
+  String displayString = "Dust = " + String((int)dustDensity) + " mg/m3       ";
+  Serial.println(displayString);
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(0,6,buf);
 }

@@ -12,7 +12,7 @@
 //#include "isep.h"
 #include "fontData.h"
 
-#define PORTI2C   2    // Selection du port I2C 0, 1 ou 2
+#define PORTI2C 2    // Selection du port I2C 0, 1 ou 2
 
 //initialize I2C module 0
 //Slightly modified version of TI's example code
@@ -394,27 +394,18 @@ void InitScreen(void)
 
 
 }
-#define SX  16
-#define EX  96
 
-#define SY  3
-#define EY  5
-void    DrawTest()
+void ClearScreen()
 {
-    int j;
-SetPageAddress(SY);
-SetColumnAddress(SX);
-for (j=SX; j<EX; j++)
-      WriteData(0x80);
-SetPageAddress(4);
-SetColumnAddress(SX);
-WriteData(0x255);
-SetColumnAddress(EX);
-WriteData(0x255);
-SetPageAddress(EY);
-SetColumnAddress(SX);
-for (j=SX; j<EX; j++)
-      WriteData(0x1);
+    int i, j;
+
+    for (i=0; i<8; i++) {
+        SetPageAddress(i);
+        SetColumnAddress(0);
+        for (j=127;j>=0;j--) {
+            WriteData(0x00);
+        }
+    }
 }
 
 void DisplayCarac(int x,int y,char c)

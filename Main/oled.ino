@@ -14,68 +14,7 @@
 
 #define PORTI2C 2    // Selection du port I2C 0, 1 ou 2
 
-//initialize I2C module 0
-//Slightly modified version of TI's example code
-void InitI2C0(void)
-{
-    //enable I2C module 0
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
-
-    //reset module
-    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C0);
-
-    //enable GPIO peripheral that contains I2C 0
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-
-    // Configure the pin muxing for I2C0 functions on port B2 and B3.
-    GPIOPinConfigure(GPIO_PB2_I2C0SCL);
-    GPIOPinConfigure(GPIO_PB3_I2C0SDA);
-
-    // Select the I2C function for these pins.
-    GPIOPinTypeI2CSCL(GPIO_PORTB_BASE, GPIO_PIN_2);
-    GPIOPinTypeI2C(GPIO_PORTB_BASE, GPIO_PIN_3);
-
-    // Enable and initialize the I2C0 master module.  Use the system clock for
-    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
-    // If false the data rate is set to 100kbps and if true the data rate will
-    // be set to 400kbps.
-    I2CMasterInitExpClk(I2C0_BASE, SysCtlClockGet(), false);
-
-    //clear I2C FIFOs
-    HWREG(I2C0_BASE + I2C_O_FIFOCTL) = 80008000;
-}
-
-void InitI2C1(void)
-{
-    //enable I2C module 1
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);
-
-    //reset module
-    SysCtlPeripheralReset(SYSCTL_PERIPH_I2C1);
-
-    //enable GPIO peripheral that contains I2C 1
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
-
-    // Configure the pin muxing for I2C1 functions on port B2 and B3.
-    GPIOPinConfigure(GPIO_PA6_I2C1SCL);
-    GPIOPinConfigure(GPIO_PA7_I2C1SDA);
-
-    // Select the I2C function for these pins.
-    GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
-    GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
-
-    // Enable and initialize the I2C0 master module.  Use the system clock for
-    // the I2C0 module.  The last parameter sets the I2C data transfer rate.
-    // If false the data rate is set to 100kbps and if true the data rate will
-    // be set to 400kbps.
-    I2CMasterInitExpClk(I2C1_BASE, SysCtlClockGet(), false);
-
-    //clear I2C FIFOs
-    HWREG(I2C1_BASE + I2C_O_FIFOCTL) = 80008000;
-}
-
-
-void InitI2C2(void)
+void InitI2C_Oled(void)
 {
     //enable I2C module 2
     SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C2);
@@ -104,17 +43,6 @@ void InitI2C2(void)
     HWREG(I2C2_BASE + I2C_O_FIFOCTL) = 80008000;
 }
 
-void InitI2C_Oled(void)
-{
-    if (PORTI2C == 0)
-        InitI2C0();
-    else
-        if (PORTI2C == 1)
-            InitI2C1();
-        else
-            InitI2C2();
-}
-//sends an I2C command to the specified slave
 void I2CSendOled(uint8_t slave_addr, uint8_t num_of_args, ...)
 {
 
@@ -258,8 +186,6 @@ void I2C2Send(uint8_t slave_addr, uint8_t num_of_args, ...)
     }
 }
 
-
-
 #define LCD_SLAVE_ADDR 0x3C // L'adresse semble être 0x3C
 #define LCD_ON 0x4f
 #define LCD_OFF 0x4e
@@ -283,8 +209,6 @@ void WriteData(int data)
     I2CSendOled(LCD_SLAVE_ADDR, 2,0x40, (char) data);  // 0x40 indique le mode data
 }
 
-
-
 void SetPageAddress(uint8_t add) {
     add &= 0x7;
     add=0xb0|add;
@@ -299,12 +223,7 @@ void SetColumnAddress(uint8_t add) {
         return;
 }
 
-
-
-
-
-
- void Fill(int val) {
+void Fill(int val) {
 
     int i,j;
     for (i=0;i<8; i++) {
@@ -331,23 +250,6 @@ void InvertDisplay(int inv) {
     else
     WriteCmd(NORMALDISPLAY);
 }
-
-void Display(unsigned char *p) {
-    int i, j;
-
-    for (i=0; i<8; i++) {
-        SetPageAddress(i);
-        SetColumnAddress(0);
-        for (j=127;j>=0;j--) {
-            WriteData(p[i*128+j]);
-        }
-    }
-}
-
-
-
-
-
 
 void InitScreen(void)
 {
@@ -429,4 +331,28 @@ void DisplayString(int x,int y,char *s)
       x += 6;
       s++;
      }
+}
+
+void Display(unsigned char *p) {
+    int i, j;
+
+    for (i=0; i<8; i++) {
+        SetPageAddress(i);
+        SetColumnAddress(0);
+        for (j=127;j>=0;j--) {
+            WriteData(p[i*128+j]);
+        }
+    }
+}
+
+void DisplayFrom(unsigned char *p, int start) {
+    int i, j;
+
+    for (i=0; i<8; i++) {
+        SetPageAddress(i);
+        SetColumnAddress(start);
+        for (j=49;j>=0;j--) {
+            WriteData(p[i*50+j]);
+        }
+    }
 }

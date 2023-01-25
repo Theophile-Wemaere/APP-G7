@@ -17,7 +17,7 @@
 #define POT2 PE_3
 // ------------- BUTTON -------------
 #define SW1 PF_3
-// -------------- SOUND -------------
+// -------------- BUZZER ------------
 #define BUZZ PC_7
 
 // max 21 char on one line on oled display
@@ -34,6 +34,7 @@ void setup()
   InitI2C_co2();
   pinMode(POT1,INPUT);
   pinMode(POT2,INPUT);
+  pinMode(ECG,INPUT);
   pinMode(SW1,INPUT_PULLUP);
   pinMode(Digital_sharp, OUTPUT);
   delay(2000);
@@ -58,18 +59,27 @@ String menu[4] = {
   "  hearth rate   ",
   "    options     "
   };
-int selectedMenu = 0; 
+int selectedMenu = 0;
+int ecgLimit = 100;
+int soundLimit = 70;
+int rate;
+int ecgCounter = 0;
+
+boolean alarmGoesOff = false;
 
 void loop() 
 {
-  //mainMenu();
+  readECG();
+  if(alarmGoesOff)
+  {
+    Serial.println("Hello");
+  }
   runtime();  
 }
 
 void runtime()
 {
   boolean buttonValue = digitalRead(SW1);
-  
   switch(choosedMenu)
   {
     case 0:
@@ -85,7 +95,7 @@ void runtime()
       hearthMenu();
       break;
     case 4:
-      printAllData();
+      optionMenu();
       break;
   }
       
@@ -102,21 +112,25 @@ void runtime()
     if(selectedMenu == 1)
     {
       choosedMenu = 1;
+      ClearScreen();
       selectedMenu = 0;
     }
     else if(selectedMenu == 2)
     {
       choosedMenu = 2;
+      ClearScreen();
       selectedMenu = 0;
     }
     else if(selectedMenu == 3)
     {
       choosedMenu = 3;
+      ClearScreen();
       selectedMenu = 0;
     }
     else if(selectedMenu == 4)
     {
       choosedMenu = 4;
+      ClearScreen();
       selectedMenu = 0;
     }
     else if(selectedMenu == 0)
@@ -137,7 +151,7 @@ void printAllData()
 
 void mainMenu()
 {
-  DisplayString(0,1," --- HEALTH-EIR ---  ");
+  DisplayString(0,1," --- TAKE-EIR ---  ");
   int value = analogRead(POT1);
   String displayString;
   char buf[30];
@@ -159,37 +173,74 @@ void mainMenu()
   }
 }
 
-
-void hearthMenu()
+void airMenu()
 {
   if(displayLogo)
   {
-    Display(hearth);
+    DisplayFrom(air,85);
     displayLogo = false;  
   }
-  displayECG();
+  displayCO2();
+  displaySharp();
 }
 
 void climateMenu()
 {
   if(displayLogo)
   {
-    Display(climate);
-    displayLogo = false;  
+    DisplayFrom(climate,85);
+    displayLogo = false;
   }
   displayDHT11();
   displaySound();
 }
 
-void airMenu()
+void hearthMenu()
 {
   if(displayLogo)
   {
-    Display(air);
+    DisplayFrom(hearth,80);
+    displayLogo = false;
+  }
+  displayECG();
+  
+}
+
+void optionMenu()
+{
+  String displayString;
+  char buf[30];
+  if(displayLogo)
+  {
+    DisplayFrom(gear,75);
     displayLogo = false;  
   }
-  displayCO2();
-  displaySharp();
+  
+  int value = analogRead(POT1);
+  
+  DisplayString(60,0,"ECG ALARME : ");
+  if(value < 2040)
+  {
+    int value2 = analogRead(POT2);
+    ecgLimit = 50 + (value2 * 100)/4096;
+    displayString = "> " + String(ecgLimit) + " bpm    ";
+  }
+  else
+    displayString = "  " + String(ecgLimit) + " bpm    ";
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(60,2,buf);
+
+  DisplayString(60,4,"SOUND LED : ");
+  if(value > 2050)
+  {
+    int value2 = analogRead(POT2);
+    soundLimit = (value2 * 100)/4096;
+    displayString = "> " + String(soundLimit) + " %    ";
+  }
+  else
+    displayString = "  " + String(soundLimit) + " %    ";
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(60,6,buf);
 }
 
 void displaySound()

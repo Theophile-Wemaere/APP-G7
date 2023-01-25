@@ -1,29 +1,44 @@
 unsigned long millis1 = 0, current,duration;
 int value;
-boolean  wasHigh = false;
+boolean wasHigh = false;
 
-void displayECG()
+void readECG()
 {
   value = digitalRead(ECG);
   if(value == 1 && !wasHigh)
   {
     wasHigh = true;
     current = millis();
-    Serial.println(current);
     duration = current - millis1;
     millis1 = current;
-    int rate = 60000/duration;
-    DisplayString(70,2,"ECG : ");
-
-    char buf[30];
-    String displayString = "-> " + String(rate) + " ug/m3      ";
-    displayString.toCharArray(buf,displayString.length());
-    DisplayString(70,4,buf);
+    rate = 60000/duration;
+    Serial.println(rate);
+    if(rate > ecgLimit)
+    {
+      ecgCounter += 1;
+      if(ecgCounter >= 5)
+      {
+        alarmGoesOff = true;
+      }
+    }
+    else
+    {
+      ecgCounter = 0;
+      alarmGoesOff = false;
+    }
   }
 
-  
   if(value == 0 && wasHigh)
   {
     wasHigh = false;
   }
+}
+
+void displayECG()
+{
+  DisplayString(60,2,"ECG : ");
+  char buf[30];
+  String displayString = "-> " + String(rate) + " bpm    ";
+  displayString.toCharArray(buf,displayString.length());
+  DisplayString(60,4,buf);
 }

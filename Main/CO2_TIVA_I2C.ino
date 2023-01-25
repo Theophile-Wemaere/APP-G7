@@ -320,12 +320,12 @@ void displayCO2()
             char buf[30];
 
             DisplayString(53,0,"CO2 : ");
-            String displayString = "-> " + String(CO2) + " ppb     ";
+            String displayString = "-> " + String(CO2) + " ppm     ";
             displayString.toCharArray(buf,displayString.length());
             DisplayString(53,1,buf);
 
-            DisplayString(53,3,"VOC : ");
-            displayString = "-> " + String(VOC) + " ppm     ";
+            DisplayString(53,3,"TVOC : ");
+            displayString = "-> " + String(VOC) + " ppb     ";
             displayString.toCharArray(buf,displayString.length());
             DisplayString(53,4,buf);
          }

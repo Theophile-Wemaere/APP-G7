@@ -90,11 +90,14 @@ void loop()
   readMicro();
 
   millis3 = millis();
-  if(millis3 - prev_millis3 >= 1000)
+  if(millis3 - prev_millis3 >= 5000)
   {
+    Serial.print("\n---------------- NEW FRAME ----------------\n");
     prev_millis3 = millis3;
-    String frame = createFrame(rate);
-    Serial1.println(frame);
+    String frame = createFrameCourante(rate);
+    //Serial1.println(frame);
+    Serial1.println("100011301002B01251B");
+    Serial.print("Responses : ");
   }
   
   if(alarmGoesOff)
@@ -114,38 +117,11 @@ void loop()
   runtime();  
   if(Serial1.available()) 
   {
-    Serial.print(rate);
-    Serial.print("  - Response : ");
-    Serial.println(Serial1.read());  
+    while(Serial1.available())
+    {
+      Serial.print((char)Serial1.read());  
+    }
   }
-}
-
-String createFrame(int value)
-{
-                              // courante  n°equipe  ecriture 
-  String courante = "1007E1"; // 1         007E      1
-  int minutes = millis() / 60000 ; 
-  int secondes = millis() % 60000 / 1000;
-  
-  char hexValue[3]; // 2 characters for the hexadecimal representation and 1 for the null terminator
-  char hexMinutes[2];
-  char hexSecondes[2];
-
-  sprintf(hexMinutes, "%X", minutes);
-  sprintf(hexSecondes, "%X", secondes);
-  sprintf(hexValue, "%X", value);
-  
-  // Ensure the output is exactly 2 characters long
-  if (strlen(hexValue) == 1) {
-    memmove(hexValue + 1, hexValue, strlen(hexValue) + 1);
-    hexValue[0] = '0';
-  }
-  Serial.println(millis());
-  Serial.println(String(minutes) + " : " + String(secondes));
-  Serial.println(courante +" 701 " + String(hexValue) + " " + String(hexMinutes) + " " + String(hexSecondes) + " 00");
-  String frame = courante + "701" + String(hexValue) + String(hexMinutes) + String(hexSecondes) + "00";
-  Serial.println(frame);
-  return frame;
 }
 
 void runtime()

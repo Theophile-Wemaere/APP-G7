@@ -23,6 +23,8 @@ void displaySharp()
   float dustDensity = readSharp()*1000;
   char buf[30];
   DisplayString(53,6,"DUST : ");
+  Serial.print("Dust : ");
+  Serial.println(dustDensity);
   String displayString = "-> " + String((int)dustDensity) + " ug/m3      ";
   displayString.toCharArray(buf,displayString.length());
   DisplayString(53,7,buf);

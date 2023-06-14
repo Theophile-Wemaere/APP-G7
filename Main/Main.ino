@@ -19,6 +19,8 @@
 #define SW1 PF_3
 // -------------- BUZZER ------------
 #define BUZZ PC_7
+// -------------- MICRO -------------
+#define MICRO PD_3
 
 // max 21 char on one line on oled display
 
@@ -29,7 +31,9 @@ void setup()
   Display(logo);
   
   Serial.begin(9600);
-  Serial.println("Initializing all components");
+  Serial1.begin(9600);
+  Serial1.setTimeout(10);
+  //Serial.println("Initializing all components");
   
   InitI2C_co2();
   pinMode(POT1,INPUT);
@@ -37,9 +41,11 @@ void setup()
   pinMode(ECG,INPUT);
   pinMode(SW1,INPUT_PULLUP);
   pinMode(Digital_sharp, OUTPUT);
+  pinMode(BUZZ,OUTPUT);
+  pinMode(MICRO,INPUT);
+  pinMode(RED_LED,OUTPUT);
   delay(2000);
-  
-  Serial.println("Done initializing");
+  //Serial.println("Done initializing");
   ClearScreen();
 }
 
@@ -59,22 +65,87 @@ String menu[4] = {
   "  hearth rate   ",
   "    options     "
   };
+
+/*String code_sensor[6] = {
+  "701",
+  "",
+}*/
+
 int selectedMenu = 0;
 int ecgLimit = 100;
-int soundLimit = 70;
+int soundLimit = 10;
 int rate;
 int ecgCounter = 0;
+int soundQuality = 0;
+
+unsigned long millis2,prev_millis2 = 0;
+unsigned long millis3,prev_millis3 = 0;
 
 boolean alarmGoesOff = false;
+boolean buzz_state = true;
 
 void loop() 
 {
   readECG();
+  readMicro();
+
+  millis3 = millis();
+  if(millis3 - prev_millis3 >= 1000)
+  {
+    prev_millis3 = millis3;
+    String frame = createFrame(rate);
+    Serial1.println(frame);
+  }
+  
   if(alarmGoesOff)
   {
-    Serial.println("Hello");
+    millis2 = millis();
+    if(millis2 - prev_millis2 >= 500)
+    {
+      prev_millis2 = millis2;
+      buzz_state = !buzz_state;
+      digitalWrite(BUZZ,buzz_state);
+    }
+  }
+  else
+  {
+    digitalWrite(BUZZ,LOW);
   }
   runtime();  
+  if(Serial1.available()) 
+  {
+    Serial.print(rate);
+    Serial.print("  - Response : ");
+    Serial.println(Serial1.read());  
+  }
+}
+
+String createFrame(int value)
+{
+                              // courante  n°equipe  ecriture 
+  String courante = "1007E1"; // 1         007E      1
+  int minutes = millis() / 60000 ; 
+  int secondes = millis() % 60000 / 1000;
+  
+  char hexValue[3]; // 2 characters for the hexadecimal representation and 1 for the null terminator
+  char hexMinutes[2];
+  char hexSecondes[2];
+
+  sprintf(hexMinutes, "%X", minutes);
+  sprintf(hexSecondes, "%X", secondes);
+  sprintf(hexValue, "%X", value);
+  
+  // Ensure the output is exactly 2 characters long
+  if (strlen(hexValue) == 1) {
+    memmove(hexValue + 1, hexValue, strlen(hexValue) + 1);
+    hexValue[0] = '0';
+  }
+  Serial.println(millis());
+  Serial.println(String(minutes) + " : " + String(secondes));
+  Serial.println(courante +" 701 " + String(hexValue) + " " + String(hexMinutes) + " " + String(hexSecondes) + " 00");
+  String frame = courante + "701" + String(hexValue) + String(hexMinutes) + String(hexSecondes) + "00";
+  Serial.println(frame);
+  return frame;
 }
 
 void runtime()
@@ -143,7 +214,7 @@ void runtime()
 
 void printAllData()
 {
-  Serial.println(" --------- NEW DATA ---------");
+  Serial.println("  --------- NEW DATA ---------");
   printDHT11Data();
   readSensor_co2();
   printSharpData();
@@ -247,7 +318,13 @@ void displaySound()
 {
   char buf[30];
   DisplayString(50,6,"SOUND : ");
-  String displayString = "-> 59 db     ";
+  String quality;
+  if(soundQuality == 0)
+    quality = "calm        ";
+  else if(soundQuality == 1)
+    quality = "chatting       ";;
+    
+  String displayString = "-> " + quality;
   displayString.toCharArray(buf,displayString.length());
   DisplayString(50,7,buf);
 }

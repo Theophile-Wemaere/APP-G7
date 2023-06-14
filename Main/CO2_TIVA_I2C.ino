@@ -199,7 +199,7 @@ int * readCO2()
                                                                                                                                                                                                                              
         VOC = (data[0]-13)*(1000/229);       
     
-        if(VOC < 0)
+        if(VOC < 100)
           VOC = 0;
 
         if(CO2 < 400)
@@ -212,7 +212,7 @@ int * readCO2()
             prevVOC = VOC;
             if(prevCO2 < 100)
               prevVOC = 100;
-            int static results[2] = {CO2,VOC};
+            int static results[2] = {CO2,VOC+=100};
             return results;
          }
       }           
@@ -260,7 +260,7 @@ void readSensor_co2()
             prevVOC = VOC;
             if(prevCO2 < 100)
               prevVOC = 100;
-
+  
             char buf[30];
             
             String displayString = "CO2 = " + String(CO2) + " ppb     ";
@@ -268,7 +268,7 @@ void readSensor_co2()
             displayString.toCharArray(buf,displayString.length());
             DisplayString(0,3,buf);
             
-            displayString = "VOC = " + String(VOC) + " ppm       ";
+            displayString = "VOC = " + String(VOC+100) + " ppm       ";
             Serial.println(displayString);
             displayString.toCharArray(buf,displayString.length());
             DisplayString(0,4,buf);
@@ -317,6 +317,8 @@ void displayCO2()
             if(prevCO2 < 100)
               prevVOC = 100;
 
+            VOC += 100;
+
             char buf[30];
 
             DisplayString(53,0,"CO2 : ");
@@ -360,12 +362,12 @@ void printCO2Data()
   char buf[30];
   if(CO2 != 0)
   {
-    String displayString = "CO2 = " + String(CO2) + " ppb      ";
+    String displayString = "CO2 = " + String(CO2) + " ppm      ";
     Serial.println(displayString);
     displayString.toCharArray(buf,displayString.length());
     DisplayString(0,3,buf);
     
-    displayString = "VOC = " + String(VOC) + " ppm     ";
+    displayString = "VOC = " + String(VOC) + " ppb     ";
     Serial.println(displayString);
     displayString.toCharArray(buf,displayString.length());
     DisplayString(0,4,buf);

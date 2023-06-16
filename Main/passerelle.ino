@@ -16,7 +16,7 @@ String createFrameCourante(int value)
   sprintf(hexSecondes, "%02X", secondes);
   sprintf(hexValue, "%04X", value);
   
-  Serial.println(courante + " " + equipe + " " + ecriture + " 7 01 " + String(hexValue) + " " + String(hexMinutes) + " " + String(hexSecondes) + " 00");
+  //Serial.println(courante + " " + equipe + " " + ecriture + " 7 01 " + String(hexValue) + " " + String(hexMinutes) + " " + String(hexSecondes) + " 00");
   String frame = courante + equipe + ecriture +  "701" + String(hexValue) + String(hexMinutes) + String(hexSecondes) + "3D";
   return frame;
 }

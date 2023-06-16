@@ -88,18 +88,6 @@ void loop()
 {
   readECG();
   readMicro();
-
-  millis3 = millis();
-  if(millis3 - prev_millis3 >= 5000)
-  {
-    Serial.print("\n---------------- NEW FRAME ----------------\n");
-    prev_millis3 = millis3;
-    String frame = createFrameCourante(rate);
-    //Serial1.println(frame);
-    Serial1.println("100011301002B01251B");
-    Serial.print("Responses : ");
-  }
-  
   if(alarmGoesOff)
   {
     millis2 = millis();
@@ -114,14 +102,25 @@ void loop()
   {
     digitalWrite(BUZZ,LOW);
   }
-  runtime();  
+
+  String informations;
+
   if(Serial1.available()) 
   {
     while(Serial1.available())
     {
-      Serial.print((char)Serial1.read());  
+      informations += (char)Serial1.read();
     }
   }
+  
+  if(informations.startsWith("1007E1a01"))
+  {
+    informations.replace("1007E1a01","");
+    String value = informations.substring(2, 4);
+    ecgLimit = strtol(value.c_str(), NULL, 16);
+    //Serial.println(ecgLimit);
+  } 
+  runtime();  
 }
 
 void runtime()

@@ -12,6 +12,8 @@ void readECG()
     duration = current - millis1;
     millis1 = current;
     rate = 60000/duration;
+    String frame = createFrameCourante(rate);
+    Serial1.println(frame);
     if(rate > ecgLimit)
     {
       ecgCounter += 1;
